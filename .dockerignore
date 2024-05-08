@@ -1,0 +1,28 @@
+# Archivos de sistema
+.dockerignore
+.git
+.gitignore
+.vscode
+.idea
+
+# Archivos temporales
+*.swp
+*~
+
+# Archivos de construcción
+node_modules
+bower_components
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.env
+
+# Directorios específicos de la aplicación
+dist
+out
+build
+
+# Archivos específicos de la aplicación
+.DS_Store
+Thumbs.db
