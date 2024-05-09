@@ -1,6 +1,5 @@
 import os
 import socket
-import ssl
 import threading
 import time
 from configparser import ConfigParser
@@ -12,9 +11,9 @@ from loguru import logger
 
 from src.main.python.certificate_utils import generate_key_pair, generate_certificate, \
     save_key_and_certificate_with_alias
-from src.main.python.json_utils.json_message import JSONMessage
 from src.main.python.manager.message_manager import MessageManager
 from src.main.python.manager.password_manager import PasswordManager
+from src.main.python.models import ClientPetition
 from src.main.python.ssl_context_utils import jks_file_to_context
 
 # CONSTANTS
@@ -45,6 +44,7 @@ class Server:
         self.message_manager = MessageManager(message_path)
         self.is_test = is_test
         self.running = False
+        ClientPetition.create_new_table()
         logger.info(f"Server initialized with host: {host} and port: {port}")
 
     def load_certificate(self) -> SSL.Context:
@@ -67,7 +67,6 @@ class Server:
         and starts listening for incoming connections. It launches a separate thread to handle each client connection.
         """
         context = self.load_certificate()
-        context.verify_mode = ssl.CERT_NONE
         self.server_socket = SSL.Connection(context, socket.socket(socket.AF_INET, socket.SOCK_STREAM))
         self.server_socket.bind((self.host, int(self.port)))
         self.server_socket.listen(5)
@@ -83,48 +82,29 @@ class Server:
                 break
 
     def handle_client(self, client_socket: socket) -> None:
-        """
-        Handle client connections.
-
-        Args:
-            client_socket (socket): Client socket object.
-        """
         try:
             logger.info(f"Connection established with {client_socket.getpeername()}")
             while True:
+                if client_socket.fileno() == -1:  # Check if the socket is still connected
+                    break
                 active, _, _ = select.select([client_socket], [], [], 1)
+                logger.info(f"Active: {active}")
                 if not active:
                     continue
                 data = client_socket.recv(1024)
-                logger.info(data)
                 if not data:
+                    logger.info(f"Connection closed by the client.")
                     break
                 received_message = data.decode()
-                logger.info(received_message)
-                message = self.actions(received_message)
-                self.send_message_in_chunks(client_socket, message)
-        except OpenSSL.SSL.ZeroReturnError:
-            logger.info(f"Connection closed by the client.")
+                logger.info(f"Received message: {received_message}")
+                ClientPetition.from_jsons(received_message)
+        except OpenSSL.SSL.SysCallError as e:
+            logger.error(f"SSL error: {e}")
         except Exception as e:
+            logger.error(f"Error: {e}", exc_info=True)
             print(e.with_traceback())
-            logger.error(f"Error: {e}")
         finally:
             client_socket.close()
-
-    def actions(self, received_message: str) -> str:
-        """
-        Perform actions based on received messages.
-
-        Args:
-            received_message (str): Received message.
-
-        Returns:
-            str: Response message.
-        """
-        received_message = JSONMessage.from_json(received_message)
-        #TODO: Verificar firma (NPI), meter en base de datos (parse string -> ClientPetition), Lanzar respuesta adecuada
-        logger.info(received_message.data)
-        return "Verificado: +100 de Social Credit"
 
     def send_message_in_chunks(self, client_socket: socket, message: str) -> None:
         """
