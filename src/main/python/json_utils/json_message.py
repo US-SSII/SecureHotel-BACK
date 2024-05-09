@@ -3,22 +3,21 @@ import json
 
 
 class JSONMessage:
-    def __init__(self, action: str, username: str, password: str, message: str) -> None:
+    def __init__(self, client_id: str, name_material: str, amount: str, digital_signature: str, order_date) -> None:
         """
-        Initializes a JSONMessage object.
+        Initializes the JSONMessage with the given action, username, password, and message.
 
         Args:
-            action (str): The action to be performed.
-            username (str): The source account.
-            password (str): The receiver account.
-            message (str): The amount in the message.
+            action (str): The action to perform.
+            username (str): The username.
+            password (str): The password.
+            message (str): The message.
         """
-        self.action = action
-        if self.action not in ['register', 'message', None]:
-            raise ValueError("Invalid action")
-        self.username = username
-        self.password = password
-        self.message = message
+        self.client_id = client_id
+        self.name_material = name_material
+        self.amount = amount
+        self.digital_signature = digital_signature
+        self.order_date = order_date
 
     def to_dict(self) -> dict:
         """
@@ -28,10 +27,11 @@ class JSONMessage:
             dict: The dictionary representation of the JSONMessage.
         """
         return {
-            'action': self.action,
-            'username': self.username,
-            'password': self.password,
-            'message': self.message,
+            'client_id': self.client_id,
+            'name_material': self.name_material,
+            'amount': self.amount,
+            'digital_signature': self.digital_signature,
+            'order_date': self.order_date
         }
 
     def to_json(self) -> str:
@@ -56,4 +56,27 @@ class JSONMessage:
             JSONMessage: The JSONMessage object.
         """
         data = json.loads(json_string)
-        return JSONMessage(data['action'], data['username'], data['password'], data['message'])
+        return JSONMessage(data['client_id'], data['name_material'], data['amount'], data['digital_signature'], data['order_date'])
+
+    @staticmethod
+    def from_jsons(json_string: str) -> 'JSONMessage':
+        """
+        Creates a JSONMessage object from a JSON-formatted string.
+
+        Args:
+            json_string (str): The JSON-formatted string.
+
+        Returns:
+            JSONMessage: The JSONMessage object.
+        """
+        data = json.loads(json_string)
+        res = []
+        print(data)
+        for value in data:
+            print(value)
+            if 'client_id' in value:
+                res.append(JSONMessage(value['client_id'], value['name_material'], value['amount'], value['digital_signature'], value['order_date']))
+            else:
+                res.append(JSONMessage(value['clientId'], value['nameMaterial'], value['amount'], value['digitalSignature'], value['orderDate']))
+
+        return res

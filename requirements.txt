@@ -3,3 +3,4 @@ pyOpenSSL==24.1.0
 pyjks==20.0.0
 peewee==3.17.3
 loguru==0.5.3
+pycryptodome==3.20.0

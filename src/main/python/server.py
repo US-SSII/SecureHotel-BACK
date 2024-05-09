@@ -11,9 +11,9 @@ from loguru import logger
 
 from src.main.python.certificate_utils import generate_key_pair, generate_certificate, \
     save_key_and_certificate_with_alias
-from src.main.python.json_utils.json_message import JSONMessage
 from src.main.python.manager.message_manager import MessageManager
 from src.main.python.manager.password_manager import PasswordManager
+from src.main.python.models import ClientPetition
 from src.main.python.ssl_context_utils import jks_file_to_context
 
 # CONSTANTS
@@ -44,6 +44,7 @@ class Server:
         self.message_manager = MessageManager(message_path)
         self.is_test = is_test
         self.running = False
+        ClientPetition.create_new_table()
         logger.info(f"Server initialized with host: {host} and port: {port}")
 
     def load_certificate(self) -> SSL.Context:
@@ -81,59 +82,29 @@ class Server:
                 break
 
     def handle_client(self, client_socket: socket) -> None:
-        """
-        Handle client connections.
-
-        Args:
-            client_socket (socket): Client socket object.
-        """
         try:
             logger.info(f"Connection established with {client_socket.getpeername()}")
             while True:
+                if client_socket.fileno() == -1:  # Check if the socket is still connected
+                    break
                 active, _, _ = select.select([client_socket], [], [], 1)
+                logger.info(f"Active: {active}")
                 if not active:
                     continue
                 data = client_socket.recv(1024)
                 if not data:
+                    logger.info(f"Connection closed by the client.")
                     break
                 received_message = data.decode()
-                message = self.actions(received_message)
-                self.send_message_in_chunks(client_socket, message)
-        except OpenSSL.SSL.ZeroReturnError:
-            logger.info(f"Connection closed by the client.")
+                logger.info(f"Received message: {received_message}")
+                ClientPetition.from_jsons(received_message)
+        except OpenSSL.SSL.SysCallError as e:
+            logger.error(f"SSL error: {e}")
         except Exception as e:
+            logger.error(f"Error: {e}", exc_info=True)
             print(e.with_traceback())
-            logger.error(f"Error: {e}")
         finally:
             client_socket.close()
-
-    def actions(self, received_message: str) -> str:
-        """
-        Perform actions based on received messages.
-
-        Args:
-            received_message (str): Received message.
-
-        Returns:
-            str: Response message.
-        """
-        received_message = JSONMessage.from_json(received_message)
-        action = received_message.action
-        if action == "message":
-            logger.info(f"Login request received from {received_message.username}")
-            if self.password_manager.check_password(received_message.username, received_message.password):
-                logger.info(f"Login request successful")
-                logger.info(f"Message received from {received_message.username}: {received_message.message}")
-                self.message_manager.save_message(received_message.username, received_message.message)
-                return "Message received"
-            else:
-                logger.error(f"Invalid username or password")
-                return "Invalid username or password"
-        elif action == "register":
-            self.password_manager.save_password(received_message.username, received_message.password)
-            logger.info(f"You have been successfully registered")
-            return "Register successful"
-        return received_message
 
     def send_message_in_chunks(self, client_socket: socket, message: str) -> None:
         """
