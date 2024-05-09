@@ -125,7 +125,7 @@ class Server:
                 active, _, _ = select.select([client_socket], [], [], 1)
                 if not active:
                     continue
-                data = client_socket.recv(9999)
+                data = client_socket.recv(999999)
                 if not data:
                     logger.info(f"Connection closed by the client.")
                     break
