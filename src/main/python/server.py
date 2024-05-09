@@ -143,16 +143,19 @@ class Server:
                 logger.info(f"Received message: {received_message}")
                 ClientPetition.from_jsons(received_message)
                 message = JSONResponse("SUCCESS", "Message received successfully.")
-                self.send_message_in_chunks(client_socket, message.to_json())
+                client_socket.sendall(message.to_json().encode("utf-8"))
+                time.sleep(1)
         except OpenSSL.SSL.SysCallError as e:
             logger.error(f"SSL error: {e}")
             message = JSONResponse("ERROR", "SSL error: {e}")
-            self.send_message_in_chunks(client_socket, message.to_json())
+            client_socket.sendall(message.to_json().encode("utf-8"))
+            time.sleep(1)
         except Exception as e:
             logger.error(f"Error: {e}", exc_info=True)
             print(traceback.format_exc())
             message = JSONResponse("ERROR", f"Error: {e}")
-            self.send_message_in_chunks(client_socket, message.to_json())
+            client_socket.sendall(message.to_json().encode("utf-8"))
+            time.sleep(1)
         finally:
             client_socket.close()
 
@@ -172,23 +175,6 @@ class Server:
             if order_dates[-1] - order_dates[0] < timedelta(hours=4):
                 logger.error(f"Client {client_id} has made too many requests")
                 raise Exception("Too many requests")
-
-    def send_message_in_chunks(self, client_socket: socket, message: str) -> None:
-        """
-        Send message in chunks to the client.
-
-        Args:
-            client_socket (socket): Client socket object.
-            message (str): Message to send.
-
-        """
-        chunk_size = 512
-        logger.info(f"Sending message: {message}")
-        for i in range(0, len(message), chunk_size):
-            chunk = message[i:i + chunk_size]
-            client_socket.sendall(chunk.encode("utf-8"))
-        time.sleep(0.01)
-        client_socket.sendall("END".encode("utf-8"))
 
     def stop(self) -> None:
         """
