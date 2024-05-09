@@ -4,21 +4,27 @@ import socket
 import threading
 import time
 from configparser import ConfigParser
+from typing import Callable
+import concurrent.futures
+
 from datetime import datetime, timedelta
 
 import OpenSSL
 import select
 from OpenSSL import SSL
 from loguru import logger
+import schedule
 import traceback
 
 from src.main.python.certificate_utils import generate_key_pair, generate_certificate, \
     save_key_and_certificate_with_alias
+from src.main.python.logger import load_logger
 from src.main.python.json_utils.json_response import JSONResponse
 from src.main.python.manager.message_manager import MessageManager
 from src.main.python.manager.password_manager import PasswordManager
 from src.main.python.models import ClientPetition
 from src.main.python.ssl_context_utils import jks_file_to_context
+from src.main.python.statistics import get_report
 
 # CONSTANTS
 current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -75,6 +81,11 @@ class Server:
         This method initializes the SSL context, binds the server socket to the specified host and port,
         and starts listening for incoming connections. It launches a separate thread to handle each client connection.
         """
+        threading.Thread(target=self.print_scheduler).start()
+        schedule.every(20).seconds.do(lambda: self.execute_non_blocking(get_report()))
+        
+        load_logger()
+        
         context = self.load_certificate()
         self.server_socket = SSL.Connection(context, socket.socket(socket.AF_INET, socket.SOCK_STREAM))
         self.server_socket.bind((self.host, int(self.port)))
@@ -89,6 +100,21 @@ class Server:
             except Exception as e:
                 logger.error(f"Error accepting connection: {e}")
                 break
+
+    def print_scheduler(self) -> None:
+        """
+        Print "hello" every second.
+        """
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+            
+    def execute_non_blocking(self, func: Callable) -> None:
+        """
+        Execute a function in a separate thread.
+        """
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            executor.submit(func)
 
     def handle_client(self, client_socket: socket) -> None:
         try:

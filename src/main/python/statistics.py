@@ -13,7 +13,7 @@ def get_report():
     now = datetime.now()
     
     pattern = "{:04d}-{:02d}".format(now.year, now.month)
-    
+        
     error_count = 0
     success_count = 0
     
@@ -52,7 +52,7 @@ def get_report():
         report_file.write("Total messages: {}\n".format(error_count + success_count))
         report_file.write("Total successful messages: {}\n".format(success_count))
         report_file.write("Total error messages: {}\n\n".format(error_count))
-        report_file.write("Percentage of complete messages: {:.2%}\n\n".format(eval))
+        report_file.write("Percentage of complete messages: {:.2}\n\n".format(eval))
         report_file.write("=" * 50)        
         
     if (eval > previous_month_percentage and eval > second_previous_month_percentage) or eval == previous_month_percentage:
@@ -63,4 +63,4 @@ def get_report():
         evolution = "0"
         
     with open(evaluation, "a") as evaluation_file:
-        evaluation_file.write("{:s} | {:s} | {:.2%}\n".format(pattern, evolution, eval))
+        evaluation_file.write("{:s} | {:s} | {:.2}\n".format(pattern, evolution, eval))

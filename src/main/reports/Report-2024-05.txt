@@ -1,0 +1,11 @@
+==================================================
+Monthly Report - 2024-05
+==================================================
+
+Total messages: 7
+Total successful messages: 0
+Total error messages: 7
+
+Percentage of complete messages: 0.0
+
+==================================================

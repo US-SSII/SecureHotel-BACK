@@ -1,0 +1,18 @@
+INFO - 2024-05-09T21:48:08.298181+0200 - Server listening on localhost:12345
+INFO - 2024-05-09T21:48:08.300179+0200 - Waiting for connections...
+INFO - 2024-05-09T21:48:16.185026+0200 - Waiting for connections...
+INFO - 2024-05-09T21:48:16.185026+0200 - Connection established with ('127.0.0.1', 60530)
+INFO - 2024-05-09T21:48:16.192022+0200 - Active: [<OpenSSL.SSL.Connection object at 0x00000239C65F29B0>]
+INFO - 2024-05-09T21:48:27.175941+0200 - Received message: [{"clientId":"23","nameMaterial":"Camas","amount":10,"digitalSignature":"A//CFDdsWQTFeO6p60JE/sPsbSswFDnJctvhjsjErSPvmTp+Nm8hRTiJB4wxwgoWHSb0iUT/csGSzBK3Iv1o63Pqg1A0gGE9Gq49sfmpOWYId9D1WZGGAgBrGBlfbBZ+IBqKnYqB58EhcAscoTIBYNUZMsEQAAz+UC24i0rg0p9VK0ALkM6tHJA+Mtnb58lU2HlKpBkrYv/AAQRf/uOzk+oR7mLHLROZ2EuIS84cjmlDaxQyNupPStvvTsGYI9t/fwFZZov2QpNqtpZOjI4Fhkv/nSbp/Ua6IdY3Pd92pz8PVbtJrcFdPcTeJC/qoaaW9seUnU0ddqN9hZl2nHkHNg==","orderDate":"2024-05-09 19:48:26"}]
+ERROR - 2024-05-09T21:48:27.178941+0200 - Error: Invalid digital_signature
+ERROR - 2024-05-09T21:48:27.178941+0200 - Error: Invalid digital_signature
+ERROR - 2024-05-09T21:48:27.178941+0200 - Error: Invalid digital_signature
+INFO - 2024-05-09T22:10:51.681046+0200 - Server listening on localhost:12345
+INFO - 2024-05-09T22:10:51.684049+0200 - Waiting for connections...
+INFO - 2024-05-09T22:11:04.157428+0200 - Connection established with ('127.0.0.1', 61092)
+INFO - 2024-05-09T22:11:04.157428+0200 - Waiting for connections...
+INFO - 2024-05-09T22:11:18.344626+0200 - Received message: [{"clientId":"10","nameMaterial":"Sillas","amount":10,"digitalSignature":"WSwDy4jZOr2Ynxn0WYkDoLZrSoVRDwzMXIxkdvfkKuYAOnUgnNzsuw8DWkCAlr+NU8MOy9UnqBBO0GaQ2vbg7jMWVJGMxczdwZ306U4HGyH6Y0GnrpV+GLaRuAUObHbnpMT1M1OZQU6FXbW2bA1lSQu7QO26zBFQfDvi2aIi8Oqt+Ab3AX+DC8B2DKAm4mg272zpyHnY90ya/+BZTG6/y15Cgd/jnYaQxfGabMoW6vhZxQ/fN7dzE7Jh1orOoR5azQi1BGMKioiYZK+B/XiAhxrD0/SsYdzKKr98YQMxCoj1bxOfTX0hZ546AF9o91+t9Xe4gEwEZJwUZKjyCW1Dbg==","orderDate":"2024-05-09 20:11:17"}]
+ERROR - 2024-05-09T22:11:18.348625+0200 - Error: 'publicKey'
+ERROR - 2024-05-09T22:11:18.348625+0200 - Error: 'publicKey'
+ERROR - 2024-05-09T22:11:18.348625+0200 - Error: 'publicKey'
+INFO - 2024-05-09T22:11:18.357527+0200 - Sending message: {"status": "ERROR", "message": "Error: 'publicKey'"}

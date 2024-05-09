@@ -5,6 +5,7 @@ from datetime import datetime
 from Cryptodome.Hash import SHA256
 from Cryptodome.PublicKey import RSA
 from Cryptodome.Signature import pkcs1_15
+from loguru import logger
 from peewee import SqliteDatabase, Model, DateField, CharField, IntegerField, TimeField, DateTimeField
 import traceback
 
@@ -81,6 +82,7 @@ class ClientPetition(BaseModel):
 
             ClientPetition.create(client_id=client_id, name_material=name_material, amount=amount,
                                   order_date=order_date)
+            logger.success(f"Message received successfully.")
 
     @staticmethod
     def _parse(data, key_client_id, key_name_material, key_amount, key_digital_signature, key_order_date, key_public_key) -> None:

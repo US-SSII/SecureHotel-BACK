@@ -4,7 +4,7 @@ from datetime import datetime
 from loguru import logger
 
 
-def load_logger(is_test: bool = False) -> None:
+def load_logger() -> None:
     """
     Initializes the Logger.
 
@@ -14,19 +14,10 @@ def load_logger(is_test: bool = False) -> None:
     # Get the current date or use a specific date for tests
     current_date = datetime.now().strftime('%Y-%m-%d')
 
-    if is_test:
-        current_date = '9999-99-99'
-        try:
-            with open("../traffic_capture/9999-99-99_log.txt", 'r+') as archivo:
-                archivo.seek(0)
-                archivo.truncate()
-        except FileNotFoundError:
-            pass
-
     # Create a file name with the date
     log_file_name = f'{current_date}_log.txt'
     log_file_path = os.path.join(
-        '../traffic_capture/', log_file_name)
+        '../logs/', log_file_name)
 
     # Configure the Loguru logger
     fmt = "{level} - {time} - {message}"
