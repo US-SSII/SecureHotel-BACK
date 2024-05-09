@@ -1,5 +1,6 @@
 import os
 import socket
+import ssl
 import threading
 import time
 from configparser import ConfigParser
@@ -66,6 +67,7 @@ class Server:
         and starts listening for incoming connections. It launches a separate thread to handle each client connection.
         """
         context = self.load_certificate()
+        context.verify_mode = ssl.CERT_NONE
         self.server_socket = SSL.Connection(context, socket.socket(socket.AF_INET, socket.SOCK_STREAM))
         self.server_socket.bind((self.host, int(self.port)))
         self.server_socket.listen(5)
@@ -94,9 +96,11 @@ class Server:
                 if not active:
                     continue
                 data = client_socket.recv(1024)
+                logger.info(data)
                 if not data:
                     break
                 received_message = data.decode()
+                logger.info(received_message)
                 message = self.actions(received_message)
                 self.send_message_in_chunks(client_socket, message)
         except OpenSSL.SSL.ZeroReturnError:
@@ -118,22 +122,9 @@ class Server:
             str: Response message.
         """
         received_message = JSONMessage.from_json(received_message)
-        action = received_message.action
-        if action == "message":
-            logger.info(f"Login request received from {received_message.username}")
-            if self.password_manager.check_password(received_message.username, received_message.password):
-                logger.info(f"Login request successful")
-                logger.info(f"Message received from {received_message.username}: {received_message.message}")
-                self.message_manager.save_message(received_message.username, received_message.message)
-                return "Message received"
-            else:
-                logger.error(f"Invalid username or password")
-                return "Invalid username or password"
-        elif action == "register":
-            self.password_manager.save_password(received_message.username, received_message.password)
-            logger.info(f"You have been successfully registered")
-            return "Register successful"
-        return received_message
+        #TODO: Verificar firma (NPI), meter en base de datos (parse string -> ClientPetition), Lanzar respuesta adecuada
+        logger.info(received_message.data)
+        return "Verificado: +100 de Social Credit"
 
     def send_message_in_chunks(self, client_socket: socket, message: str) -> None:
         """

@@ -1,9 +1,11 @@
 # json_message.py
 import json
+import datetime
+
 
 
 class JSONMessage:
-    def __init__(self, action: str, username: str, password: str, message: str) -> None:
+    def __init__(self, data:list) -> None:
         """
         Initializes a JSONMessage object.
 
@@ -13,12 +15,26 @@ class JSONMessage:
             password (str): The receiver account.
             message (str): The amount in the message.
         """
-        self.action = action
-        if self.action not in ['register', 'message', None]:
-            raise ValueError("Invalid action")
-        self.username = username
-        self.password = password
-        self.message = message
+        self.data = data
+        '''
+        self.clientId = clientId
+        self.nameMaterial = nameMaterial
+        self.amount = amount
+        self.digitalSignature = digitalSignature
+        self.orderDate = self.parse_order_date(orderDateStr)
+        '''
+        def parse_order_date(self, orderDateStr: str) -> datetime:
+            date_format = "%B %d, %Y %I:%M:%S %p"
+
+            try:
+                # Intentar parsear la fecha usando el formato especificado
+                order_date = datetime.strptime(orderDateStr, date_format)
+            except ValueError as e:
+                # Manejar errores de formato de fecha
+                raise ValueError(f"Error parsing order date: {e}")
+
+            return order_date
+
 
     def to_dict(self) -> dict:
         """
@@ -56,4 +72,4 @@ class JSONMessage:
             JSONMessage: The JSONMessage object.
         """
         data = json.loads(json_string)
-        return JSONMessage(data['action'], data['username'], data['password'], data['message'])
+        return JSONMessage(data)
