@@ -125,12 +125,11 @@ class Server:
                 active, _, _ = select.select([client_socket], [], [], 1)
                 if not active:
                     continue
-                data = client_socket.recv(1024)
+                data = client_socket.recv(9999)
                 if not data:
                     logger.info(f"Connection closed by the client.")
                     break
                 received_message = data.decode()
-
                 client_id = {data['clientId'] for data in json.loads(received_message)}
 
                 if len(client_id) != 1:

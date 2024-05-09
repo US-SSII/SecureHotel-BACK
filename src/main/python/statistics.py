@@ -3,7 +3,7 @@ import os
 
 
 def calculate_successful_ratio(total_messages, success_count):
-    return success_count / total_messages if total_messages > 0 else 0
+    return (success_count / total_messages if total_messages > 0 else 0)*100*1.0
 
 def get_report():
     logs_dir = "../logs/"
@@ -52,7 +52,7 @@ def get_report():
         report_file.write("Total messages: {}\n".format(error_count + success_count))
         report_file.write("Total successful messages: {}\n".format(success_count))
         report_file.write("Total error messages: {}\n\n".format(error_count))
-        report_file.write("Percentage of complete messages: {:.2}\n\n".format(eval))
+        report_file.write("Percentage of complete messages: {}\n\n".format(eval))
         report_file.write("=" * 50)        
         
     if (eval > previous_month_percentage and eval > second_previous_month_percentage) or eval == previous_month_percentage:
@@ -63,4 +63,4 @@ def get_report():
         evolution = "0"
         
     with open(evaluation, "a") as evaluation_file:
-        evaluation_file.write("{:s} | {:s} | {:.2}\n".format(pattern, evolution, eval))
+        evaluation_file.write("{:s} | {:s} | {}\n".format(pattern, evolution, eval))

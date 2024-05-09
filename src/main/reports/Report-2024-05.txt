@@ -2,10 +2,10 @@
 Monthly Report - 2024-05
 ==================================================
 
-Total messages: 7
-Total successful messages: 0
-Total error messages: 7
+Total messages: 8
+Total successful messages: 8
+Total error messages: 0
 
-Percentage of complete messages: 0.0
+Percentage of complete messages: 100.0
 
 ==================================================

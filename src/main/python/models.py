@@ -82,7 +82,7 @@ class ClientPetition(BaseModel):
 
             ClientPetition.create(client_id=client_id, name_material=name_material, amount=amount,
                                   order_date=order_date)
-            logger.success(f"Message received successfully.")
+            logger.success(f"Digital Sign verified and Delivery Petition has been saved succesfully.")
 
     @staticmethod
     def _parse(data, key_client_id, key_name_material, key_amount, key_digital_signature, key_order_date, key_public_key) -> None:
