@@ -1,16 +1,20 @@
+import json
 import os
 import socket
 import threading
 import time
 from configparser import ConfigParser
+from datetime import datetime, timedelta
 
 import OpenSSL
 import select
 from OpenSSL import SSL
 from loguru import logger
+import traceback
 
 from src.main.python.certificate_utils import generate_key_pair, generate_certificate, \
     save_key_and_certificate_with_alias
+from src.main.python.json_utils.json_response import JSONResponse
 from src.main.python.manager.message_manager import MessageManager
 from src.main.python.manager.password_manager import PasswordManager
 from src.main.python.models import ClientPetition
@@ -25,6 +29,7 @@ server_alias = configuration.get("SERVER", "alias")
 common_name = configuration.get("SERVER", "common_name")
 password_path = os.path.join(current_directory, configuration.get("FILE_MANAGER", "password_path"))
 message_path = os.path.join(current_directory, configuration.get("FILE_MANAGER", "message_path"))
+
 
 class Server:
     def __init__(self, host: str, port: int, is_test: bool = False) -> None:
@@ -44,6 +49,10 @@ class Server:
         self.message_manager = MessageManager(message_path)
         self.is_test = is_test
         self.running = False
+        try:
+            ClientPetition.drop_old_table()
+        except Exception as e:
+            logger.error(f"Error dropping table: {e}")
         ClientPetition.create_new_table()
         logger.info(f"Server initialized with host: {host} and port: {port}")
 
@@ -88,7 +97,6 @@ class Server:
                 if client_socket.fileno() == -1:  # Check if the socket is still connected
                     break
                 active, _, _ = select.select([client_socket], [], [], 1)
-                logger.info(f"Active: {active}")
                 if not active:
                     continue
                 data = client_socket.recv(1024)
@@ -96,15 +104,48 @@ class Server:
                     logger.info(f"Connection closed by the client.")
                     break
                 received_message = data.decode()
+
+                client_id = {data['clientId'] for data in json.loads(received_message)}
+
+                if len(client_id) != 1:
+                    logger.error(f"Invalid client_id: {client_id}")
+                    raise Exception("Invalid client_id")
+
+                client_id = client_id.pop()
+                self.check_client(client_id)
+
                 logger.info(f"Received message: {received_message}")
                 ClientPetition.from_jsons(received_message)
+                message = JSONResponse("SUCCESS", "Message received successfully.")
+                self.send_message_in_chunks(client_socket, message.to_json())
         except OpenSSL.SSL.SysCallError as e:
             logger.error(f"SSL error: {e}")
+            message = JSONResponse("ERROR", "SSL error: {e}")
+            self.send_message_in_chunks(client_socket, message.to_json())
         except Exception as e:
             logger.error(f"Error: {e}", exc_info=True)
-            print(e.with_traceback())
+            print(traceback.format_exc())
+            message = JSONResponse("ERROR", f"Error: {e}")
+            self.send_message_in_chunks(client_socket, message.to_json())
         finally:
             client_socket.close()
+
+    def check_client(self, client_id):
+        if ClientPetition.select().where(ClientPetition.client_id == client_id).count() > 3:
+            # Obtener las últimas tres solicitudes del cliente, ordenadas por fecha de orden descendente
+            data = ClientPetition.select().where(ClientPetition.client_id == client_id).order_by(
+                ClientPetition.order_date.desc()).limit(3)
+
+            # Convertir las cadenas de fecha en objetos datetime
+            order_dates = [item.order_date for item in data]
+
+            # Ordenar las fechas de manera ascendente para que la primera solicitud sea la más antigua
+            order_dates.sort()
+
+            # Verificar si han pasado menos de cuatro horas desde la primera solicitud
+            if order_dates[-1] - order_dates[0] < timedelta(hours=4):
+                logger.error(f"Client {client_id} has made too many requests")
+                raise Exception("Too many requests")
 
     def send_message_in_chunks(self, client_socket: socket, message: str) -> None:
         """
@@ -116,10 +157,11 @@ class Server:
 
         """
         chunk_size = 512
+        logger.info(f"Sending message: {message}")
         for i in range(0, len(message), chunk_size):
             chunk = message[i:i + chunk_size]
             client_socket.sendall(chunk.encode("utf-8"))
-        time.sleep(0.001)
+        time.sleep(0.01)
         client_socket.sendall("END".encode("utf-8"))
 
     def stop(self) -> None:
@@ -128,4 +170,3 @@ class Server:
         """
         self.running = False
         self.server_socket.close()
-

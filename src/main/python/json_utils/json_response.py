@@ -2,7 +2,7 @@
 import json
 
 class JSONResponse:
-    def __init__(self, status: str) -> None:
+    def __init__(self, status: str, message: str) -> None:
         """
         Initializes a JSONResponse object.
 
@@ -10,6 +10,7 @@ class JSONResponse:
             status (str): The status for the response.
         """
         self.status = status
+        self.message = message
 
     def to_dict(self) -> dict:
         """
@@ -18,7 +19,7 @@ class JSONResponse:
         Returns:
             dict: The dictionary representation of the JSONResponse.
         """
-        return {'status': self.status}
+        return {'status': self.status, 'message': self.message}
 
     def to_json(self) -> str:
         """
@@ -41,4 +42,4 @@ class JSONResponse:
             JSONResponse: The JSONResponse object.
         """
         data = json.loads(json_string)
-        return JSONResponse(data['status'])
+        return JSONResponse(data['status'], data['message'])
